@@ -10,9 +10,9 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 
-router.get('/', function (req, res, next) {
-  res.send('respond with an ai resource');
-});
+// router.get('/', function (req, res, next) {
+//   res.send('respond with an ai resource');
+// });
 
 
 router.post('/', function (req, res, next) {
