@@ -3,11 +3,11 @@ var router = express.Router();
 const { Configuration, OpenAIApi } = require('openai')
 const config = require("config");
 
-const OPENAI_KEY = config.get("OPENAI_KEY")
-const configuration = new Configuration({
-  apiKey: OPENAI_KEY,
-});
-const openai = new OpenAIApi(configuration);
+// const OPENAI_KEY = config.get("OPENAI_KEY") // change to kansha_openai
+// const configuration = new Configuration({
+//   apiKey: OPENAI_KEY,
+// });
+// const openai = new OpenAIApi(configuration);
 
 
 // router.get('/', function (req, res, next) {
