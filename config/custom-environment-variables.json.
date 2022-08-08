@@ -1,3 +1,3 @@
 {
-  "OPENAI_KEY": "kansha_openai"
+ "kansha_openai": "OPENAI_KEY"
 }
