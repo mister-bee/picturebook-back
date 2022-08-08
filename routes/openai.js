@@ -5,14 +5,14 @@ const config = require("config");
 
 // const OPENAI_KEY = config.get("OPENAI_KEY") // change to kansha_openai
 // const configuration = new Configuration({
-//   apiKey: OPENAI_KEY,
+//   apiKey: process.env.OPENAI_KEY,
 // });
 // const openai = new OpenAIApi(configuration);
 
 
-// router.get('/', function (req, res, next) {
-//   res.send('respond with an ai resource');
-// });
+router.get('/', function (req, res, next) {
+  res.send('respond with an ai resource');
+});
 
 
 router.post('/', function (req, res, next) {
