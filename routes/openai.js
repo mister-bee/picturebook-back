@@ -1,9 +1,11 @@
 var express = require('express');
+require('dotenv').config()
 var router = express.Router();
 const { Configuration, OpenAIApi } = require('openai')
-const config = require("config");
+//const config = require("config");
 
 //const OPENAI_KEY = config.get("OPENAI_KEY") // change to kansha_openai
+console.log("process.env.OPENAI_KEY", process.env.OPENAI_KEY)
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_KEY,
 });
