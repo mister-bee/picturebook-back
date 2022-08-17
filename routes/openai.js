@@ -2,9 +2,7 @@ var express = require('express');
 require('dotenv').config()
 var router = express.Router();
 const { Configuration, OpenAIApi } = require('openai')
-//const config = require("config");
 
-//const OPENAI_KEY = config.get("OPENAI_KEY") // change to kansha_openai
 console.log("process.env.OPENAI_KEY", process.env.OPENAI_KEY)
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_KEY,
@@ -20,7 +18,10 @@ router.get('/', function (req, res, next) {
 router.post('/', function (req, res, next) {
 
   const { body } = req
-  const { userRequest, max_tokens = 200 } = body || {}
+  const { userRequest, max_tokens = 200, temperature = .5 } = body || {}
+
+  console.log("temperature=====>>>>", temperature)
+  console.log("type of ====>>>>", typeof temperature)
 
   if (!userRequest) {
     res.status(400).json({
@@ -32,7 +33,7 @@ router.post('/', function (req, res, next) {
   const openAiRequest = {
     model: "text-davinci-002",
     prompt: userRequest,
-    temperature: 0.5,
+    temperature,
     max_tokens,
     top_p: 1,
     frequency_penalty: 0.5,
