@@ -3,7 +3,12 @@ require('dotenv').config()
 var router = express.Router();
 const { Configuration, OpenAIApi } = require('openai')
 
+const test = require('./test123');
+// How to import 'theFunction'
+//const theFunction = require('dalle_2.js')
+
 console.log("process.env.OPENAI_KEY", process.env.OPENAI_KEY)
+
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_KEY,
 });
@@ -22,6 +27,7 @@ router.post('/', function (req, res, next) {
 
   console.log("temperature=====>>>>", temperature)
   console.log("type of ====>>>>", typeof temperature)
+  console.log("++++ pare and add to DALLE userRequest++++++>>", userRequest)
 
   if (!userRequest) {
     res.status(400).json({
@@ -40,6 +46,7 @@ router.post('/', function (req, res, next) {
     presence_penalty: 0,
     stop: ["You:"],
   }
+  test.theFunction()
 
   openai.createCompletion(openAiRequest)
 
