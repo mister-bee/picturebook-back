@@ -20,8 +20,6 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration)
 
-// const newPrompt = 'frenchie puppy playing with rabbit neon modern'
-
 async function openAiGo(prompt) {
 
   const result = await openai.createImage({
@@ -43,10 +41,15 @@ async function openAiGo(prompt) {
   return url
 }
 
-const theFunction = (newPrompt) => {
+const theFunction = async (newPrompt) => {
   console.log("🌼🌼🌼🌼🌼🌼🌼====PROMPT==>>> ", newPrompt)
-  openAiGo(newPrompt)
-}
-// export default theFunction
 
+  const imageUrl = await openAiGo(newPrompt)
+  console.log("👽👽👽👽imageUrl===>>>", imageUrl)
+
+  return imageUrl
+}
+
+
+// export default theFunction
 module.exports = { theFunction }

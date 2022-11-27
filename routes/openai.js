@@ -38,7 +38,10 @@ router.post('/', function (req, res, next) {
 
   const storyPrefix = "Write a children's story about "
 
-  test.theFunction(userRequest)
+
+  const dallePrefix = "A children's book illustration of  "
+
+  test.theFunction(dallePrefix + userRequest)
 
 
   const openAiRequest = {
@@ -53,18 +56,16 @@ router.post('/', function (req, res, next) {
   }
 
 
-
   let textResponse;
   let imageUrl;
 
-  const newPrompt = 'frenchie puppy playing with rabbit neon modern'
+
 
   openai.createCompletion(openAiRequest)
     .then((response) => {
       const parsedResponse = response.data.choices[0].text.split(/\r?\n/).join(" ")
 
       console.log(parsedResponse, parsedResponse);
-
 
       textResponse = parsedResponse
 
