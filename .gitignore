@@ -25,3 +25,5 @@ yarn-error.log*
 
 /config/custom-environment-variables.json
 /config/default.json
+
+img/

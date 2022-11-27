@@ -3,11 +3,13 @@ import { writeFileSync } from 'fs';
 import dotenv from "dotenv"
 
 dotenv.config()
-const API_KEY = process.env.API_KEY
+const DALLE_API_KEY = process.env.DALLE_API_KEY
 
 const configuration = new Configuration({
-  apiKey: API_KEY,
+  apiKey: DALLE_API_KEY,
 })
+
+
 
 
 const openai = new OpenAIApi(configuration)
@@ -23,7 +25,7 @@ const result = await openai.createImage({
 
 const url = result.data.data[0].url;
 
-console.log(url)
+console.log("url", url)
 
 // Save Image ULR to Disk
 const imgResult = await fetch(url)
