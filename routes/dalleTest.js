@@ -30,10 +30,8 @@ async function openAiGo(prompt) {
   })
 
   const url = result.data.data[0].url;
-
   const imgResult = await fetch(url)
   const blob = await imgResult.blob()
-
   const buffer = Buffer.from(await blob.arrayBuffer())
 
   writeFileSync(`./img/${Date.now()}.png`, buffer)

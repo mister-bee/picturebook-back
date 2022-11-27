@@ -37,12 +37,9 @@ router.post('/', function (req, res, next) {
   }
 
   const storyPrefix = "Write a children's story about "
-
-
   const dallePrefix = "A children's book illustration of  "
 
   test.theFunction(dallePrefix + userRequest)
-
 
   const openAiRequest = {
     model: "text-davinci-002",
@@ -60,8 +57,8 @@ router.post('/', function (req, res, next) {
   let imageUrl;
 
 
-
   openai.createCompletion(openAiRequest)
+
     .then((response) => {
       const parsedResponse = response.data.choices[0].text.split(/\r?\n/).join(" ")
 
@@ -69,8 +66,19 @@ router.post('/', function (req, res, next) {
 
       textResponse = parsedResponse
 
-      //res.status(200).send(parsedResponse)
     })
+
+
+    // openai.createCompletion(openAiRequest)
+    //   .then((response) => {
+    //     const parsedResponse = response.data.choices[0].text.split(/\r?\n/).join(" ")
+
+    //     console.log(parsedResponse, parsedResponse);
+
+    //     textResponse = parsedResponse
+
+    //     //res.status(200).send(parsedResponse)
+    //   })
 
     // .then(() => {
     //   // image
@@ -109,20 +117,28 @@ router.post('/', function (req, res, next) {
 
 
     .then(() => {
-      // send text response
-      // console.log(imageUrl)
-
-
       res.status(200).send(textResponse)
-
     })
-
     .catch(err => {
       console.log(err.message)
       res.status(400).json({
         error: err
       })
     })
+
+
+  // SUNDAY EVENING --- get image link and text in same call
+  const promise1 = Promise.resolve(3);
+  const promise2 = openai.createCompletion(openAiRequest);
+  const promise3 = new Promise((resolve, reject) => {
+    setTimeout(resolve, 5000, 'foo');
+  });
+
+  Promise.all([promise1, promise2, promise3]).then((values) => {
+    console.log("👻👻👻👻 values===>>>>>", values);
+  });
+
+
 
 });
 
