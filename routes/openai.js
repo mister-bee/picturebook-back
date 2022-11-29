@@ -39,9 +39,8 @@ router.post('/', function (req, res, next) {
   const storyPrefix = "Write a children's story about "
   const dallePrefix = "A children's book illustration of  "
 
-  test.theFunction(dallePrefix + userRequest)
 
-  const openAiRequest = {
+  const openAiRequestObj = {
     model: "text-davinci-002",
     prompt: storyPrefix + userRequest,
     temperature,
@@ -57,19 +56,59 @@ router.post('/', function (req, res, next) {
   let imageUrl;
 
 
-  openai.createCompletion(openAiRequest)
+  const openAiCreation = openai.createCompletion(openAiRequestObj)
 
     .then((response) => {
       const parsedResponse = response.data.choices[0].text.split(/\r?\n/).join(" ")
 
-      console.log(parsedResponse, parsedResponse);
+      console.log("🎃🎃🎃 parsedResponse===>", parsedResponse);
 
       textResponse = parsedResponse
 
     })
 
+    .then(() => {
+      //res.status(200).send(textResponse)
+      return textResponse
+    })
+    .catch(err => {
+      console.log(err.message)
+      res.status(400).json({
+        error: err
+      })
+    })
 
-    // openai.createCompletion(openAiRequest)
+
+  // MONDAY EVENING --- get image and text in same return
+
+
+  test.theFunction(dallePrefix + userRequest)
+
+
+  const promise1 = Promise.resolve(3);
+  const promise2 = openAiCreation;
+  const promise3 = new Promise((resolve, reject) => {
+    setTimeout(resolve, 5000, 'foo');
+  });
+
+  // and thee errors?
+  Promise.all([promise1, promise2, promise3]).then((allValues) => {
+    console.log("👻👻👻👻 FINAL VALUES===>>>>>", allValues);
+
+    res.status(200).send(textResponse)
+  });
+
+
+
+});
+
+module.exports = router;
+
+
+//
+
+
+    // openai.createCompletion(openAiRequestObj)
     //   .then((response) => {
     //     const parsedResponse = response.data.choices[0].text.split(/\r?\n/).join(" ")
 
@@ -114,35 +153,3 @@ router.post('/', function (req, res, next) {
     // .then((finalBufferToWrite) => {
     //   writeFileSync(`./img/${Date.now()}.png`, finalBufferToWrite)
     // })
-
-
-    .then(() => {
-      res.status(200).send(textResponse)
-    })
-    .catch(err => {
-      console.log(err.message)
-      res.status(400).json({
-        error: err
-      })
-    })
-
-
-  // SUNDAY EVENING --- get image link and text in same call
-  const promise1 = Promise.resolve(3);
-  const promise2 = openai.createCompletion(openAiRequest);
-  const promise3 = new Promise((resolve, reject) => {
-    setTimeout(resolve, 5000, 'foo');
-  });
-
-  Promise.all([promise1, promise2, promise3]).then((values) => {
-    console.log("👻👻👻👻 values===>>>>>", values);
-  });
-
-
-
-});
-
-module.exports = router;
-
-
-//
