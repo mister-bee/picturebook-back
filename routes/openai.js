@@ -41,7 +41,7 @@ router.post('/', function (req, res, next) {
 
 
   const openAiRequestObj = {
-    model: "text-davinci-002",
+    model: "text-davinci-003",
     prompt: storyPrefix + userRequest,
     temperature,
     max_tokens,
@@ -57,18 +57,12 @@ router.post('/', function (req, res, next) {
 
 
   const openAiCreation = openai.createCompletion(openAiRequestObj)
-
     .then((response) => {
       const parsedResponse = response.data.choices[0].text.split(/\r?\n/).join(" ")
-
       console.log("🎃🎃🎃 parsedResponse===>", parsedResponse);
-
       textResponse = parsedResponse
-
     })
-
     .then(() => {
-      //res.status(200).send(textResponse)
       return textResponse
     })
     .catch(err => {
@@ -82,20 +76,19 @@ router.post('/', function (req, res, next) {
   // MONDAY EVENING --- get image and text in same return
 
 
-  test.theFunction(dallePrefix + userRequest)
-
-
-  const promise1 = Promise.resolve(3);
+  const promise0 = Promise.resolve(3);
+  const promise1 = test.theFunction(dallePrefix + userRequest)
   const promise2 = openAiCreation;
   const promise3 = new Promise((resolve, reject) => {
     setTimeout(resolve, 5000, 'foo');
   });
 
   // and thee errors?
-  Promise.all([promise1, promise2, promise3]).then((allValues) => {
+  Promise.all([promise0, promise1, promise2, promise3]).then((allValues) => {
+
     console.log("👻👻👻👻 FINAL VALUES===>>>>>", allValues);
 
-    res.status(200).send(textResponse)
+    res.status(200).send(allValues)
   });
 
 
