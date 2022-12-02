@@ -79,12 +79,12 @@ router.post('/', function (req, res, next) {
   const promise0 = Promise.resolve(3);
   const promise1 = test.theFunction(dallePrefix + userRequest)
   const promise2 = openAiCreation;
-  const promise3 = new Promise((resolve, reject) => {
-    setTimeout(resolve, 5000, 'foo');
-  });
+  // const promise3 = new Promise((resolve, reject) => {
+  //   setTimeout(resolve, 5000, 'foo');
+  // });
 
   // and thee errors?
-  Promise.all([promise0, promise1, promise2, promise3]).then((allValues) => {
+  Promise.all([promise0, promise1, promise2]).then((allValues) => {
 
     console.log("👻👻👻👻 FINAL VALUES===>>>>>", allValues);
 
