@@ -38,22 +38,26 @@ router.post('/', function (req, res, next) {
     })
   }
 
+
+  const languageFlag = "In Spanish, "
+
   const storyPrefix_ELL = "Write a story for children who are learning English, using simple descriptive words, about  "
-  const storyPrefix_5 = "Write a children's story for 5 years olds about "
-  const storyPrefix = "Write a children's story for 8 years olds about "
+  const storyPrefix_5 = " write a children's story for 5 years olds about "
+  const storyPrefix = " write a children's story for 8 years olds about "
   const storyPrefix_12 = "Write a children's story for 12 year old using rich and detailed language about "
 
   const dialogueFlag = " Be sure to have the characters using interesting dialogue."
 
+
   const dallePrefix = "A children's book illustration of  "
-  const dalleSuffix = " At the end, give the story a title."
+  const dalleSuffix = " At the end, give the story a title and write after TITLE:"
 
 
 
 
   const openAiRequestObj = {
     model: "text-davinci-003",
-    prompt: storyPrefix + userRequest + dialogueFlag + dalleSuffix,
+    prompt: languageFlag + storyPrefix + userRequest + dialogueFlag + dalleSuffix,
     temperature: 1,
     max_tokens: 2000,
     top_p: 1,
