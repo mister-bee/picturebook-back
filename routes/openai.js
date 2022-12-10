@@ -24,11 +24,13 @@ router.get('/', function (req, res, next) {
 router.post('/', function (req, res, next) {
 
   const { body } = req
-  const { userRequest, max_tokens = 200, temperature = .5 } = body || {}
+  const { userRequest, max_tokens, temperature } = body || {}
 
-  // console.log("temperature=====>>>>", temper ature)
-  // console.log("type of ====>>>>", typeof temperature)
-  console.log("+++++++++ parse and add to DALLE userRequest++++++>>", userRequest)
+  console.log("🦁 max_tokens =====>>>>", max_tokens)
+  console.log("🦁🦁 temperature =====>>>>", temperature)
+  //console.log("typeof ====>>>>", typeof temperature)
+  console.log("🦁🦁🦁 userRequest ====>>>>", userRequest)
+
 
   if (!userRequest) {
     res.status(400).json({
@@ -36,15 +38,24 @@ router.post('/', function (req, res, next) {
     })
   }
 
-  const storyPrefix = "Write a children's story about "
+  const storyPrefix_ELL = "Write a story for children who are learning English, using simple descriptive words, about  "
+  const storyPrefix_5 = "Write a children's story for 5 years olds about "
+  const storyPrefix = "Write a children's story for 8 years olds about "
+  const storyPrefix_12 = "Write a children's story for 12 year old using rich and detailed language about "
+
+  const dialogueFlag = " Be sure to have the characters using interesting dialogue."
+
   const dallePrefix = "A children's book illustration of  "
+  const dalleSuffix = " At the end, give the story a title."
+
+
 
 
   const openAiRequestObj = {
     model: "text-davinci-003",
-    prompt: storyPrefix + userRequest,
-    temperature,
-    max_tokens,
+    prompt: storyPrefix + userRequest + dialogueFlag + dalleSuffix,
+    temperature: 1,
+    max_tokens: 2000,
     top_p: 1,
     frequency_penalty: 0.5,
     presence_penalty: 0,
@@ -66,7 +77,7 @@ router.post('/', function (req, res, next) {
       return textResponse
     })
     .catch(err => {
-      console.log(err.message)
+      console.log(" 👺👺👺=========>", err.message)
       res.status(400).json({
         error: err
       })
