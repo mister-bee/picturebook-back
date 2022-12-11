@@ -40,6 +40,7 @@ router.post('/', function (req, res, next) {
 
 
   const languageFlag = "In Spanish, "
+  const languageFlagEnglish = "In English, "
 
   const storyPrefix_ELL = "Write a story for children who are learning English, using simple descriptive words, about  "
   const storyPrefix_5 = " write a children's story for 5 years olds about "
@@ -51,8 +52,6 @@ router.post('/', function (req, res, next) {
 
   const dallePrefix = "A children's book illustration of  "
   const dalleSuffix = " At the end, give the story a title and write after TITLE:"
-
-
 
 
   const openAiRequestObj = {
@@ -87,23 +86,20 @@ router.post('/', function (req, res, next) {
       })
     })
 
-
-  // MONDAY EVENING --- get image and text in same return
-
+  // add: Write a 5 question quiz of comprehention questions
 
   const promise0 = Promise.resolve(3);
   const promise1 = test.theFunction(dallePrefix + userRequest)
   const promise2 = openAiCreation;
-  // const promise3 = new Promise((resolve, reject) => {
-  //   setTimeout(resolve, 5000, 'foo');
-  // });
+
 
   // and thee errors?
   Promise.all([promise0, promise1, promise2]).then((allValues) => {
-
-    console.log("👻👻👻👻 FINAL VALUES===>>>>>", allValues);
-
+    console.log("👻 Success===>>>>>", allValues);
     res.status(200).send(allValues)
+  }).catch(err => {
+    console.log("🙊 Server Error. Check node version.", err.message)
+    res.status(500).json({ error: err })
   });
 
 
