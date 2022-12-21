@@ -20,7 +20,7 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration)
 
-async function openAiGo(prompt) {
+async function getImageAI(prompt) {
 
   const result = await openai.createImage({
     prompt,
@@ -34,18 +34,22 @@ async function openAiGo(prompt) {
   const blob = await imgResult.blob()
   const buffer = Buffer.from(await blob.arrayBuffer())
 
-  writeFileSync(`./img/${Date.now()}.png`, buffer)
+  const localFileName = `${Date.now()}_picturebook_DEC2022.png`
 
-  return url
+  writeFileSync("./img/" + localFileName, buffer)
+  //writeFileSync(`./img/${Date.now()}.png`, buffer)
+  console.log("localFileName", localFileName)
+
+  return { url, localFileName }
 }
 
 const theFunction = async (newPrompt) => {
   console.log("🌼🌼🌼🌼🌼🌼🌼====PROMPT==>>> ", newPrompt)
 
-  const imageUrl = await openAiGo(newPrompt)
-  console.log("👽👽👽👽imageUrl===>>>", imageUrl)
+  const { url, localFileName } = await getImageAI(newPrompt)
+  console.log("👽👽👽👽url===>>>", url)
 
-  return imageUrl
+  return { url, localFileName }
 }
 
 

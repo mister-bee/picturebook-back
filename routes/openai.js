@@ -1,24 +1,37 @@
 const express = require('express');
 require('dotenv').config()
 const router = express.Router();
+const { v4 } = require("uuid");
+
 const { Configuration, OpenAIApi } = require('openai')
-
-const test = require('./dalleTest');
-// How to import 'theFunction'
-//const theFunction = require('dalle_2.js')
-
-
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_KEY,
-});
+const dalle2 = require('./dalle2');
+const configuration = new Configuration({ apiKey: process.env.OPENAI_KEY });
 const openai = new OpenAIApi(configuration);
+//const saveLocal = require('../util/saveLocal')
+
+
+
+const admin = require("firebase-admin");
+var serviceAccount = require("../config/serviceAccountKey.json");
+
+//const app = initializeApp(firebaseConfig);
+// gs://picturebook-4deab.appspot.com/
+
+const bucketName = 'picturebook-4deab.appspot.com'
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  storageBucket: bucketName
+});
+
+//const { initializeApp, cert } = require('firebase-admin/app');
+const { getStorage } = require('firebase-admin/storage');
+
+
 
 
 router.get('/', function (req, res, next) {
   res.send('respond with an ai resource');
 });
-
-
 
 
 router.post('/', function (req, res, next) {
@@ -86,24 +99,55 @@ router.post('/', function (req, res, next) {
       })
     })
 
-  // add: Write a 5 question quiz of comprehention questions
 
   const promise0 = Promise.resolve(3);
-  const promise1 = test.theFunction(dallePrefix + userRequest)
+  const urlAndLocalFilename = dalle2.theFunction(dallePrefix + userRequest)
   const promise2 = openAiCreation;
 
 
   // and thee errors?
-  Promise.all([promise0, promise1, promise2]).then((allValues) => {
-    console.log("👻 Success===>>>>>", allValues);
-    res.status(200).send(allValues)
-  }).catch(err => {
-    console.log("🙊 Server Error. Check node version.", err.message)
-    res.status(500).json({ error: err })
-  });
+  Promise.all([promise0, urlAndLocalFilename, promise2]).then((allValues) => {
+    console.log("👻 Success ===>>>>>", allValues);
+
+
+    res.status(200).send([null, allValues[1].url, allValues[2]])
+    return allValues[1].localFileName
+
+  }).then((localFileName) => {
+
+    console.log("localFileName THEN===>>>", localFileName)
+
+    //const bucket = getStorage().bucket('my-custom-bucket');
+    const bucket = getStorage().bucket();
 
 
 
+    const uploadFile = () => {
+      const options = {
+        destination: "images/" + localFileName,
+        // Optional:
+        // Set a generation-match precondition to avoid potential race conditions
+        // and data corruptions. The request to upload is aborted if the object's
+        // generation number does not match your precondition. For a destination
+        // object that does not yet exist, set the ifGenerationMatch precondition to 0
+        // If the destination object already exists in your bucket, set instead a
+        // generation-match precondition using its generation number.
+        //preconditionOpts: { ifGenerationMatch: 0 },
+      };
+
+      bucket.upload("./img/" + localFileName, options);
+      console.log(`${localFileName} uploaded to ${bucketName}`);
+    }
+
+    uploadFile()
+
+  })
+
+
+    .catch(err => {
+      console.log("🙊 Server Error. Check node version.", err.message)
+      res.status(500).json({ error: err })
+    });
 });
 
 module.exports = router;
@@ -157,3 +201,25 @@ module.exports = router;
     // .then((finalBufferToWrite) => {
     //   writeFileSync(`./img/${Date.now()}.png`, finalBufferToWrite)
     // })
+
+
+
+// const { getFirestore, collection, getDocs } = require('firebase-admin/firestore');
+// const {
+//   ref,
+//   uploadBytes,
+//   getDownloadURL,
+//   listAll,
+//   list,
+//   getStorage
+// } = require('firebase-admin/storage')
+
+// const storage = getStorage(app);
+// //const imageRef = ref(storage, `images/${imageUpload.name + v4()}`);
+// const imageRef = ref(storage, `images/${"NODETEST" + v4()}`);
+// uploadBytes(imageRef, imageUpload).then((snapshot) => {
+//   getDownloadURL(snapshot.ref).then((url) => {
+//     //setImageUrls((prev) => [...prev, url]);
+//     console.log("====🌼🌼🌼🌼🌼===>>>>", url)
+//   });
+// });
