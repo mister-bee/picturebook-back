@@ -118,7 +118,7 @@ router.post('/', function (req, res, next) {
 
     const uploadFile = () => {
       const options = {
-        destination: "images/" + localFileName,
+        destination: "images/USER123/" + localFileName,
         // Optional:
         // Set a generation-match precondition to avoid potential race conditions
         // and data corruptions. The request to upload is aborted if the object's
@@ -129,7 +129,8 @@ router.post('/', function (req, res, next) {
         //preconditionOpts: { ifGenerationMatch: 0 },
       };
 
-      const googleCloudResponse = bucket.upload("./img/" + localFileName, options);
+      const googleCloudResponse = bucket.upload("img/" + localFileName, options);
+
       console.log(`${localFileName} uploaded to ${bucketName}`);
 
       return googleCloudResponse
@@ -141,10 +142,12 @@ router.post('/', function (req, res, next) {
 
   }).then((googleCloudResponse) => {
 
-    const { name, bucket, selfLink } = googleCloudResponse
+    // const imageLocation = googleCloudResponse.getSignedUrl()
 
 
-    console.log("🍁🍁🍁🍁 googleCloudResponse 🍁🍁🍁🍁", name, bucket, selfLink)
+    // console.log("🍀🍀🍀🍀 imageLocation 🍀🍀🍀🍀", imageLocation)
+
+
     console.log("🍁🍁🍁🍁 TODO: DELETE LOCAL FILE 🍁🍁🍁🍁")
   })
 
