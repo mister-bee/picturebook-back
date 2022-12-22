@@ -107,7 +107,6 @@ router.post('/', function (req, res, next) {
   Promise.all([promise0, urlAndLocalFilename, promise2]).then((allValues) => {
     console.log("👻 Success ===>>>>>", allValues);
 
-
     res.status(200).send([null, allValues[1].url, allValues[2]])
     return allValues[1].localFileName
 
@@ -118,9 +117,13 @@ router.post('/', function (req, res, next) {
     // const bucket = getStorage().bucket('my-custom-bucket');
     const bucket = getStorage().bucket();
 
+    const folderPrefix = "images/USERSET_A_"
+    const entirePrefix = folderPrefix + userId + "/"
+
     const uploadFile = () => {
       const options = {
-        destination: "images/USER123/" + localFileName,
+        destination: entirePrefix + localFileName,
+
         // Optional:
         // Set a generation-match precondition to avoid potential race conditions
         // and data corruptions. The request to upload is aborted if the object's
