@@ -7,25 +7,21 @@ const { Configuration, OpenAIApi } = require('openai')
 const dalle2 = require('./dalle2');
 const configuration = new Configuration({ apiKey: process.env.OPENAI_KEY });
 const openai = new OpenAIApi(configuration);
-//const saveLocal = require('../util/saveLocal')
 
 
 
 const admin = require("firebase-admin");
 var serviceAccount = require("../config/serviceAccountKey.json");
 
-//const app = initializeApp(firebaseConfig);
-// gs://picturebook-4deab.appspot.com/
+//const bucketName = 'picturebook-4deab.appspot.com'
+const bucketName = process.env.BUCKET_ID
 
-const bucketName = 'picturebook-4deab.appspot.com'
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   storageBucket: bucketName
 });
 
-//const { initializeApp, cert } = require('firebase-admin/app');
 const { getStorage } = require('firebase-admin/storage');
-
 
 
 
@@ -117,10 +113,8 @@ router.post('/', function (req, res, next) {
 
     console.log("localFileName THEN===>>>", localFileName)
 
-    //const bucket = getStorage().bucket('my-custom-bucket');
+    // const bucket = getStorage().bucket('my-custom-bucket');
     const bucket = getStorage().bucket();
-
-
 
     const uploadFile = () => {
       const options = {
@@ -135,12 +129,23 @@ router.post('/', function (req, res, next) {
         //preconditionOpts: { ifGenerationMatch: 0 },
       };
 
-      bucket.upload("./img/" + localFileName, options);
+      const googleCloudResponse = bucket.upload("./img/" + localFileName, options);
       console.log(`${localFileName} uploaded to ${bucketName}`);
+
+      return googleCloudResponse
+
     }
 
-    uploadFile()
+    return uploadFile()
 
+
+  }).then((googleCloudResponse) => {
+
+    const { name, bucket, selfLink } = googleCloudResponse
+
+
+    console.log("🍁🍁🍁🍁 googleCloudResponse 🍁🍁🍁🍁", name, bucket, selfLink)
+    console.log("🍁🍁🍁🍁 TODO: DELETE LOCAL FILE 🍁🍁🍁🍁")
   })
 
 
