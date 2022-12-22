@@ -43,10 +43,11 @@ async function getImageAI(prompt) {
   return { url, localFileName }
 }
 
-const theFunction = async (newPrompt) => {
-  console.log("🌼🌼🌼🌼🌼🌼🌼====PROMPT==>>> ", newPrompt)
+const theFunction = async ({ userPrompt, userId }) => {
+  console.log("🌼🌼🌼🌼🌼🌼🌼====PROMPT==>>> ", userPrompt)
+  console.log("🌼🌼🌼🌼🌼🌼🌼==== userId ==>>> ", userId)
 
-  const { url, localFileName } = await getImageAI(newPrompt)
+  const { url, localFileName } = await getImageAI(userPrompt)
   console.log("👽👽👽👽url===>>>", url)
 
   return { url, localFileName }

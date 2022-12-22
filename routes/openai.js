@@ -33,12 +33,13 @@ router.get('/', function (req, res, next) {
 router.post('/', function (req, res, next) {
 
   const { body } = req
-  const { userRequest, max_tokens, temperature } = body || {}
+  const { userRequest, max_tokens, temperature, userId } = body || {}
 
   console.log("🦁 max_tokens =====>>>>", max_tokens)
   console.log("🦁🦁 temperature =====>>>>", temperature)
   //console.log("typeof ====>>>>", typeof temperature)
   console.log("🦁🦁🦁 userRequest ====>>>>", userRequest)
+  console.log("🌼🌼🌼🌼🌼 userId ====>>>>", userId)
 
 
   if (!userRequest) {
@@ -89,7 +90,7 @@ router.post('/', function (req, res, next) {
       return textResponse
     })
     .catch(err => {
-      console.log(" 👺👺👺=========>", err.message)
+      console.log(" 👺👺👺 =====>", err.message)
       res.status(400).json({
         error: err
       })
@@ -97,7 +98,8 @@ router.post('/', function (req, res, next) {
 
 
   const promise0 = Promise.resolve(3);
-  const urlAndLocalFilename = dalle2.theFunction(dallePrefix + userRequest)
+  const urlAndLocalFilename = dalle2.theFunction({ userPrompt: dallePrefix + userRequest, userId })
+
   const promise2 = openAiCreation;
 
 
