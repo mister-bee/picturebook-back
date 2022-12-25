@@ -7,6 +7,7 @@ const admin = require("firebase-admin");
 var serviceAccount = require("../config/serviceAccountKey.json");
 const { getStorage, ref, getDownloadUrl } = require('firebase-admin/storage');
 
+
 const configuration = new Configuration({ apiKey: process.env.OPENAI_KEY });
 const openai = new OpenAIApi(configuration);
 
@@ -19,8 +20,8 @@ admin.initializeApp({
   storageBucket: bucketName
 });
 
-const storage = getStorage();
-
+//const storage = getStorage();
+const bucket = getStorage().bucket();
 
 router.get('/', function (req, res, next) {
   res.send('respond with an ai resource');
@@ -94,39 +95,41 @@ router.post('/', function (req, res, next) {
       res.status(200).send([null, allValues[1].url, allValues[2]])
       return allValues[1].localFileName
     })
+
     .then((localFileName) => {
-      const bucket = getStorage().bucket();
-      const folderPrefix = "images/USERSET_A_"
-      const entirePrefix = folderPrefix + userId + "/"
+      const bucketPrefix = "images/USERSET_A_" + userId + "/"
+      const bucketSuffix = "_picturebook_DEC2022.png"
+      const options = { destination: bucketPrefix + storyIdTitle + bucketSuffix };
 
-      const options = { destination: entirePrefix + storyIdTitle };
-      // const options = { destination: entirePrefix + localFileName };
       const googleCloudResponse = bucket.upload("img/" + localFileName, options)
-      console.log(`${localFileName} uploaded to ${bucketName}`);
+      console.log(`#1 - options ${options}`);
+      console.log(`#1 ${localFileName} uploaded to ${bucketName}`);
 
-      return googleCloudResponse
-      //return localFileName
+      // return googleCloudResponse
+      return localFileName
 
     })
 
-    // .then((localFileName) => {
-    //   const folderPrefix = "images/USERSET_A_"
-    //   const entirePrefix = folderPrefix + userId + "/"
+    // SAVE TO BACKUP BUCKET
+    .then((localFileName) => {
+      const bucketPrefix = "images/USERSET_A_" + userId + "/"
+      const bucketSuffix = "_picturebook_DEC2022.png"
+      const options = { destination: bucketPrefix + storyIdTitle + bucketSuffix };
 
-    //   // ref N
-    //   getDownloadUrl(ref(storage, entirePrefix + localFileName))
-    //     .then((url) => {
-    //       console.log("URL====>>>>", url)
-    //     })
-    // })
+      const googleCloudResponse2 = bucket.upload("img/" + localFileName, options)
+      console.log(`#2 - options ${options}`);
+      console.log(`#2 ${localFileName} uploaded to ${bucketName}`);
+      // return googleCloudResponse
+      return localFileName
 
+    })
 
     //  ADD HERE
     // #1 saveBackupImages -- check flag saveBackupImages
     // #2 DELETE LOCAL FILE -- localFileName
 
-    .then((googleCloudResponse) => {
-      console.log("🍁🍁🍁🍁 TODO: DELETE LOCAL FILE 🍁🍁🍁🍁")
+    .then((localFileName) => {
+      console.log("🍁🍁🍁🍁 TODO: DELETE LOCAL FILE 🍁🍁🍁🍁", localFileName)
     })
 
     .catch(err => {
