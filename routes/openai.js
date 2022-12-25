@@ -1,28 +1,25 @@
 const express = require('express');
 require('dotenv').config()
 const router = express.Router();
-const { v4 } = require("uuid");
-
 const { Configuration, OpenAIApi } = require('openai')
 const dalle2 = require('./dalle2');
+const admin = require("firebase-admin");
+var serviceAccount = require("../config/serviceAccountKey.json");
+const { getStorage, ref, getDownloadUrl } = require('firebase-admin/storage');
+
 const configuration = new Configuration({ apiKey: process.env.OPENAI_KEY });
 const openai = new OpenAIApi(configuration);
 
 
-
-const admin = require("firebase-admin");
-var serviceAccount = require("../config/serviceAccountKey.json");
-
-//const bucketName = 'picturebook-4deab.appspot.com'
 const bucketName = process.env.BUCKET_ID
+const saveBackupImages = true
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   storageBucket: bucketName
 });
 
-const { getStorage } = require('firebase-admin/storage');
-
+const storage = getStorage();
 
 
 router.get('/', function (req, res, next) {
@@ -33,36 +30,24 @@ router.get('/', function (req, res, next) {
 router.post('/', function (req, res, next) {
 
   const { body } = req
-  const { userRequest, max_tokens, temperature, userId } = body || {}
+  const { userRequest, max_tokens, temperature, userId, storyIdTitle } = body || {}
 
   console.log("🦁 max_tokens =====>>>>", max_tokens)
   console.log("🦁🦁 temperature =====>>>>", temperature)
-  //console.log("typeof ====>>>>", typeof temperature)
   console.log("🦁🦁🦁 userRequest ====>>>>", userRequest)
   console.log("🌼🌼🌼🌼🌼 userId ====>>>>", userId)
 
+  if (!userRequest) { res.status(400).json({ error: "Invalid user request" }) }
 
-  if (!userRequest) {
-    res.status(400).json({
-      error: "Invalid user request"
-    })
-  }
-
-
-  const languageFlag = "In Spanish, "
-  const languageFlagEnglish = "In English, "
-
+  const languageFlagSpanish = "In Spanish, "
+  const languageFlag = "In English, "
   const storyPrefix_ELL = "Write a story for children who are learning English, using simple descriptive words, about  "
   const storyPrefix_5 = " write a children's story for 5 years olds about "
   const storyPrefix = " write a children's story for 8 years olds about "
   const storyPrefix_12 = "Write a children's story for 12 year old using rich and detailed language about "
-
   const dialogueFlag = " Be sure to have the characters using interesting dialogue."
-
-
-  const dallePrefix = "A children's book illustration of  "
-  const dalleSuffix = " At the end, give the story a title and write after TITLE:"
-
+  const dallePrefix = "A detailed children's book illustration of  "
+  const dalleSuffix = ". At the end, give the story a title and right after TITLE:"
 
   const openAiRequestObj = {
     model: "text-davinci-003",
@@ -75,15 +60,12 @@ router.post('/', function (req, res, next) {
     stop: ["You:"],
   }
 
-
   let textResponse;
-  let imageUrl;
 
-
-  const openAiCreation = openai.createCompletion(openAiRequestObj)
+  const openAIText = openai.createCompletion(openAiRequestObj)
     .then((response) => {
       const parsedResponse = response.data.choices[0].text.split(/\r?\n/).join(" ")
-      console.log("🎃🎃🎃 parsedResponse===>", parsedResponse);
+      console.log("parsedResponse ===>", parsedResponse);
       textResponse = parsedResponse
     })
     .then(() => {
@@ -97,71 +79,62 @@ router.post('/', function (req, res, next) {
     })
 
 
-  const promise0 = Promise.resolve(3);
-  const urlAndLocalFilename = dalle2.theFunction({ userPrompt: dallePrefix + userRequest, userId })
+  let imageUrl;
 
-  const promise2 = openAiCreation;
+  const promise00 = Promise.resolve(3); // REMOVE
+  const urlAndLocalFilename01 = dalle2.theFunction({ userPrompt: dallePrefix + userRequest, userId })
+
+  const promise02 = openAIText;
 
 
-  // and thee errors?
-  Promise.all([promise0, urlAndLocalFilename, promise2]).then((allValues) => {
-    console.log("👻 Success ===>>>>>", allValues);
+  // and the errors?
+  Promise.all([promise00, urlAndLocalFilename01, promise02])
 
-    res.status(200).send([null, allValues[1].url, allValues[2]])
-    return allValues[1].localFileName
+    .then((allValues) => {
+      res.status(200).send([null, allValues[1].url, allValues[2]])
+      return allValues[1].localFileName
+    })
+    .then((localFileName) => {
+      const bucket = getStorage().bucket();
+      const folderPrefix = "images/USERSET_A_"
+      const entirePrefix = folderPrefix + userId + "/"
 
-  }).then((localFileName) => {
-
-    console.log("localFileName THEN===>>>", localFileName)
-
-    // const bucket = getStorage().bucket('my-custom-bucket');
-    const bucket = getStorage().bucket();
-
-    const folderPrefix = "images/USERSET_A_"
-    const entirePrefix = folderPrefix + userId + "/"
-
-    const uploadFile = () => {
-      const options = {
-        destination: entirePrefix + localFileName,
-
-        // Optional:
-        // Set a generation-match precondition to avoid potential race conditions
-        // and data corruptions. The request to upload is aborted if the object's
-        // generation number does not match your precondition. For a destination
-        // object that does not yet exist, set the ifGenerationMatch precondition to 0
-        // If the destination object already exists in your bucket, set instead a
-        // generation-match precondition using its generation number.
-        //preconditionOpts: { ifGenerationMatch: 0 },
-      };
-
-      const googleCloudResponse = bucket.upload("img/" + localFileName, options);
-
+      const options = { destination: entirePrefix + storyIdTitle };
+      // const options = { destination: entirePrefix + localFileName };
+      const googleCloudResponse = bucket.upload("img/" + localFileName, options)
       console.log(`${localFileName} uploaded to ${bucketName}`);
 
       return googleCloudResponse
+      //return localFileName
 
-    }
+    })
 
-    return uploadFile()
+    // .then((localFileName) => {
+    //   const folderPrefix = "images/USERSET_A_"
+    //   const entirePrefix = folderPrefix + userId + "/"
+
+    //   // ref N
+    //   getDownloadUrl(ref(storage, entirePrefix + localFileName))
+    //     .then((url) => {
+    //       console.log("URL====>>>>", url)
+    //     })
+    // })
 
 
-  }).then((googleCloudResponse) => {
+    //  ADD HERE
+    // #1 saveBackupImages -- check flag saveBackupImages
+    // #2 DELETE LOCAL FILE -- localFileName
 
-    // const imageLocation = googleCloudResponse.getSignedUrl()
-
-
-    // console.log("🍀🍀🍀🍀 imageLocation 🍀🍀🍀🍀", imageLocation)
-
-
-    console.log("🍁🍁🍁🍁 TODO: DELETE LOCAL FILE 🍁🍁🍁🍁")
-  })
-
+    .then((googleCloudResponse) => {
+      console.log("🍁🍁🍁🍁 TODO: DELETE LOCAL FILE 🍁🍁🍁🍁")
+    })
 
     .catch(err => {
       console.log("🙊 Server Error. Check node version.", err.message)
       res.status(500).json({ error: err })
     });
-});
+
+})
 
 module.exports = router;
 
@@ -236,3 +209,13 @@ module.exports = router;
 //     console.log("====🌼🌼🌼🌼🌼===>>>>", url)
 //   });
 // });
+
+
+    // Optional:
+          // Set a generation-match precondition to avoid potential race conditions
+          // and data corruptions. The request to upload is aborted if the object's
+          // generation number does not match your precondition. For a destination
+          // object that does not yet exist, set the ifGenerationMatch precondition to 0
+          // If the destination object already exists in your bucket, set instead a
+          // generation-match precondition using its generation number.
+          //preconditionOpts: { ifGenerationMatch: 0 },
