@@ -8,6 +8,7 @@ const { writeFileSync } = require('fs')
 
 //import dotenv from "dotenv"
 // dotenv.config()
+// back
 require('dotenv').config()
 
 
