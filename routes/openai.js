@@ -6,8 +6,9 @@ const dalle2 = require('./dalle2');
 const admin = require("firebase-admin");
 var serviceAccount = require("../config/serviceAccountKey.json");
 const { getStorage, ref, getDownloadUrl } = require('firebase-admin/storage');
+const { v4 } = require('uuid');
 
-
+const { unlink } = require('node:fs/promises');
 const configuration = new Configuration({ apiKey: process.env.OPENAI_KEY });
 const openai = new OpenAIApi(configuration);
 
@@ -33,10 +34,13 @@ router.post('/', function (req, res, next) {
   const { body } = req
   const { userRequest, max_tokens, temperature, userId, storyIdTitle } = body || {}
 
-  console.log("🦁 max_tokens =====>>>>", max_tokens)
-  console.log("🦁🦁 temperature =====>>>>", temperature)
-  console.log("🦁🦁🦁 userRequest ====>>>>", userRequest)
-  console.log("🌼🌼🌼🌼🌼 userId ====>>>>", userId)
+  //const localFileName2 = `${Date.now()}_picturebook_DEC2022.png`
+  const localFileName2 = `${v4()}_picturebook_DEC2022.png`
+
+  // console.log("🦁 max_tokens =====>>>>", max_tokens)
+  // console.log("🦁🦁 temperature =====>>>>", temperature)
+  // console.log("🦁🦁🦁 userRequest ====>>>>", userRequest)
+  // console.log("🌼🌼🌼🌼🌼 userId ====>>>>", userId)
 
   if (!userRequest) { res.status(400).json({ error: "Invalid user request" }) }
 
@@ -79,11 +83,8 @@ router.post('/', function (req, res, next) {
       })
     })
 
-
-  let imageUrl;
-
   const promise00 = Promise.resolve(3); // REMOVE
-  const urlAndLocalFilename01 = dalle2.theFunction({ userPrompt: dallePrefix + userRequest, userId })
+  const urlAndLocalFilename01 = dalle2.theFunction({ userPrompt: dallePrefix + userRequest, userId, localFileName: localFileName2 })
 
   const promise02 = openAIText;
 
@@ -92,44 +93,28 @@ router.post('/', function (req, res, next) {
   Promise.all([promise00, urlAndLocalFilename01, promise02])
 
     .then((allValues) => {
+      console.log("001" + "🐿🐿🐿🐿🐿🐿🐿🐿🐿", localFileName2)
       res.status(200).send([null, allValues[1].url, allValues[2]])
-      return allValues[1].localFileName
     })
 
-    .then((localFileName) => {
+    .then(() => {
+      console.log("002" + "🐿🐿🐿🐿🐿🐿🐿🐿🐿", localFileName2)
       const bucketPrefix = "images/USERSET_A_" + userId + "/"
       const bucketSuffix = "_picturebook_DEC2022.png"
       const options = { destination: bucketPrefix + storyIdTitle + bucketSuffix };
+      // console.log(`#1 - options ${options}`);
+      // console.log(`#1 ${localFileName2} uploaded to ${bucketName}`);
+      bucket.upload("img/" + localFileName2, options)
 
-      const googleCloudResponse = bucket.upload("img/" + localFileName, options)
-      console.log(`#1 - options ${options}`);
-      console.log(`#1 ${localFileName} uploaded to ${bucketName}`);
+        .then(() => {
+          console.log("003" + "🐿🐿🐿🐿🐿🐿🐿🐿🐿", localFileName2)
 
-      // return googleCloudResponse
-      return localFileName
-
-    })
-
-    // SAVE TO BACKUP BUCKET
-    .then((localFileName) => {
-      const bucketPrefix = "images/USERSET_A_" + userId + "/"
-      const bucketSuffix = "_picturebook_DEC2022.png"
-      const options = { destination: bucketPrefix + storyIdTitle + bucketSuffix };
-
-      const googleCloudResponse2 = bucket.upload("img/" + localFileName, options)
-      console.log(`#2 - options ${options}`);
-      console.log(`#2 ${localFileName} uploaded to ${bucketName}`);
-      // return googleCloudResponse
-      return localFileName
-
-    })
-
-    //  ADD HERE
-    // #1 saveBackupImages -- check flag saveBackupImages
-    // #2 DELETE LOCAL FILE -- localFileName
-
-    .then((localFileName) => {
-      console.log("🍁🍁🍁🍁 TODO: DELETE LOCAL FILE 🍁🍁🍁🍁", localFileName)
+          const bucketBackupPrefix = "images_backup/USERSET_A_" + userId + "/"
+          const bucketSuffix = "_picturebook_DEC2022.png"
+          const options = { destination: bucketBackupPrefix + storyIdTitle + bucketSuffix };
+          bucket.upload("img/" + localFileName2, options)
+            .then(() => unlink("img/" + localFileName2))
+        })
     })
 
     .catch(err => {
