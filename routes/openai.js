@@ -93,21 +93,22 @@ router.post('/', function (req, res, next) {
   Promise.all([promise00, urlAndLocalFilename01, promise02])
 
     .then((allValues) => {
-      console.log("001" + "🐿🐿🐿🐿🐿🐿🐿🐿🐿", localFileName2)
+      // console.log("001" + "🐿🐿🐿🐿🐿🐿🐿🐿🐿", localFileName2)
       res.status(200).send([null, allValues[1].url, allValues[2]])
-    })
+    }).then(
+
+      Promise.all([promise00, promise00, promise00])
+    )
 
     .then(() => {
-      console.log("002" + "🐿🐿🐿🐿🐿🐿🐿🐿🐿", localFileName2)
+      // console.log("002" + "🐿🐿🐿🐿🐿🐿🐿🐿🐿", localFileName2)
       const bucketPrefix = "images/USERSET_A_" + userId + "/"
       const bucketSuffix = "_picturebook_DEC2022.png"
       const options = { destination: bucketPrefix + storyIdTitle + bucketSuffix };
-      // console.log(`#1 - options ${options}`);
-      // console.log(`#1 ${localFileName2} uploaded to ${bucketName}`);
       bucket.upload("img/" + localFileName2, options)
 
         .then(() => {
-          console.log("003" + "🐿🐿🐿🐿🐿🐿🐿🐿🐿", localFileName2)
+          // console.log("003" + "🐿🐿🐿🐿🐿🐿🐿🐿🐿", localFileName2)
 
           const bucketBackupPrefix = "images_backup/USERSET_A_" + userId + "/"
           const bucketSuffix = "_picturebook_DEC2022.png"
