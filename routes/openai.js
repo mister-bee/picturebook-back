@@ -21,7 +21,7 @@ admin.initializeApp({
   storageBucket: bucketName
 });
 
-//const storage = getStorage();
+
 const bucket = getStorage().bucket();
 
 router.get('/', function (req, res, next) {
@@ -50,9 +50,12 @@ router.post('/', function (req, res, next) {
   const storyPrefix_5 = " write a children's story for 5 years olds about "
   const storyPrefix = " write a children's story for 8 years olds about "
   const storyPrefix_12 = "Write a children's story for 12 year old using rich and detailed language about "
+
+
   const dialogueFlag = " Be sure to have the characters using interesting dialogue."
   const dallePrefix = "A detailed children's book illustration of  "
-  const dalleSuffix = ". At the end, give the story a title and right after TITLE:"
+  // const dalleSuffix = ". At the end, give the story a title and right after TITLE:"
+  const dalleSuffix = ". The format of the response should be a JSON object with 'title' and 'story' as keys."
 
   const openAiRequestObj = {
     model: "text-davinci-003",
@@ -67,53 +70,45 @@ router.post('/', function (req, res, next) {
 
   let textResponse;
 
-  const openAIText = openai.createCompletion(openAiRequestObj)
+  const getStoryText = openai.createCompletion(openAiRequestObj)
     .then((response) => {
       const parsedResponse = response.data.choices[0].text.split(/\r?\n/).join(" ")
-      console.log("parsedResponse ===>", parsedResponse);
+
       textResponse = parsedResponse
     })
-    .then(() => {
-      return textResponse
-    })
+    .then(() => { return textResponse })
     .catch(err => {
       console.log(" 👺👺👺 =====>", err.message)
-      res.status(400).json({
-        error: err
-      })
+      res.status(400).json({ error: err })
     })
 
   const promise00 = Promise.resolve(3); // REMOVE
-  const urlAndLocalFilename01 = dalle2.theFunction({ userPrompt: dallePrefix + userRequest, userId, localFileName: localFileName2 })
+  const getImage = dalle2.getImage({ userPrompt: dallePrefix + userRequest, userId, localFileName: localFileName2 })
 
-  const promise02 = openAIText;
+  // const promise02 = getStoryText;
 
 
   // and the errors?
-  Promise.all([promise00, urlAndLocalFilename01, promise02])
-
+  // 
+  Promise.all([promise00, getImage, getStoryText])
     .then((allValues) => {
-      // console.log("001" + "🐿🐿🐿🐿🐿🐿🐿🐿🐿", localFileName2)
       res.status(200).send([null, allValues[1].url, allValues[2]])
-    }).then(
+    })
 
-      Promise.all([promise00, promise00, promise00])
-    )
+    .then(Promise.all([promise00, promise00, promise00]))
 
     .then(() => {
-      // console.log("002" + "🐿🐿🐿🐿🐿🐿🐿🐿🐿", localFileName2)
       const bucketPrefix = "images/USERSET_A_" + userId + "/"
       const bucketSuffix = "_picturebook_DEC2022.png"
       const options = { destination: bucketPrefix + storyIdTitle + bucketSuffix };
       bucket.upload("img/" + localFileName2, options)
 
         .then(() => {
-          // console.log("003" + "🐿🐿🐿🐿🐿🐿🐿🐿🐿", localFileName2)
-
           const bucketBackupPrefix = "images_backup/USERSET_A_" + userId + "/"
           const bucketSuffix = "_picturebook_DEC2022.png"
           const options = { destination: bucketBackupPrefix + storyIdTitle + bucketSuffix };
           bucket.upload("img/" + localFileName2, options)
+
             .then(() => unlink("img/" + localFileName2))
         })
     })
@@ -127,84 +122,3 @@ router.post('/', function (req, res, next) {
 
 module.exports = router;
 
-
-//
-
-
-    // openai.createCompletion(openAiRequestObj)
-    //   .then((response) => {
-    //     const parsedResponse = response.data.choices[0].text.split(/\r?\n/).join(" ")
-
-    //     console.log(parsedResponse, parsedResponse);
-
-    //     textResponse = parsedResponse
-
-    //     //res.status(200).send(parsedResponse)
-    //   })
-
-    // .then(() => {
-    //   // image
-    //   return openai.createImage({
-    //     prompt: newPrompt,
-    //     n: 5,
-    //     size: "1024x1024",
-    //     user: "theBlueBoy"
-    //   })
-    // })
-
-    // .then((result) => {
-    //   const url = result.data.data[0].url;
-    //   imageUrl = url
-    //   console.log("===== imageUrl", imageUrl)
-    //   return url
-    // })
-
-    // .then((url) => {
-    //   console.log("===== url", url)
-    //   return fetch(url)
-
-    // }).then((imgResult) => {
-    //   return imgResult.blob()
-
-    // }).then((blob) => {
-    //   return blob.arrayBuffer()
-
-    // }).then((buffer) => {
-    //   return Buffer.from(buffer)
-
-    // })
-    // .then((finalBufferToWrite) => {
-    //   writeFileSync(`./img/${Date.now()}.png`, finalBufferToWrite)
-    // })
-
-
-
-// const { getFirestore, collection, getDocs } = require('firebase-admin/firestore');
-// const {
-//   ref,
-//   uploadBytes,
-//   getDownloadURL,
-//   listAll,
-//   list,
-//   getStorage
-// } = require('firebase-admin/storage')
-
-// const storage = getStorage(app);
-// //const imageRef = ref(storage, `images/${imageUpload.name + v4()}`);
-// const imageRef = ref(storage, `images/${"NODETEST" + v4()}`);
-// uploadBytes(imageRef, imageUpload).then((snapshot) => {
-//   getDownloadURL(snapshot.ref).then((url) => {
-//     //setImageUrls((prev) => [...prev, url]);
-//     console.log("====🌼🌼🌼🌼🌼===>>>>", url)
-//   });
-// });
-
-
-    // Optional:
-          // Set a generation-match precondition to avoid potential race conditions
-          // and data corruptions. The request to upload is aborted if the object's
-          // generation number does not match your precondition. For a destination
-          // object that does not yet exist, set the ifGenerationMatch precondition to 0
-          // If the destination object already exists in your bucket, set instead a
-          // generation-match precondition using its generation number.
-          //preconditionOpts: { ifGenerationMatch: 0 },
