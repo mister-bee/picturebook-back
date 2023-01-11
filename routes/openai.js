@@ -55,63 +55,125 @@ router.post('/', function (req, res, next) {
   const dialogueFlag = " Be sure to have the characters using interesting dialogue."
   const dallePrefix = "A detailed children's book illustration of  "
   // const dalleSuffix = ". At the end, give the story a title and right after TITLE:"
-  const dalleSuffix = ". The format of the response should be a JSON object with 'title' and 'story' as keys."
+  // const dalleSuffix = ". The format of the response should be a JSON object with 'title' and 'story' as keys."
 
-  const openAiRequestObj = {
+
+  // ---- TEXT ---- //
+  const openAiStoryRequestObject = {
     model: "text-davinci-003",
-    prompt: languageFlag + storyPrefix + userRequest + dialogueFlag + dalleSuffix,
+    prompt: languageFlag + storyPrefix + userRequest + dialogueFlag, // + dalleSuffix,
     temperature: 1,
     max_tokens: 2000,
     top_p: 1,
     frequency_penalty: 0.5,
-    presence_penalty: 0,
-    stop: ["You:"],
+    presence_penalty: 0
+    // stop: ["You:"]
   }
 
-  let textResponse;
+  let textOfStory;
 
-  const getStoryText = openai.createCompletion(openAiRequestObj)
+  const getStoryText = openai.createCompletion(openAiStoryRequestObject)
     .then((response) => {
       const parsedResponse = response.data.choices[0].text.split(/\r?\n/).join(" ")
-
-      textResponse = parsedResponse
+      textOfStory = parsedResponse
     })
-    .then(() => { return textResponse })
+    .then(() => { return textOfStory }) // necessary:?
     .catch(err => {
-      console.log(" 👺👺👺 =====>", err.message)
+      console.log("👺👺👺 getStoryText =====>", err.message)
       res.status(400).json({ error: err })
     })
+
+
+  // ---- TITLE ---- //
+  // const openAiTitleRequest = {
+  //   model: "text-davinci-003",
+  //   prompt: "Write an interesting title to the following children's story: " + tempText,
+  //   temperature: 1,
+  //   max_tokens: 500,
+  //   top_p: 1,
+  //   frequency_penalty: 0.5,
+  //   presence_penalty: 0
+  //   //stop: ["You:"]
+  // }
+
+  // let titleOfStory;
+
+  // const getStoryTitle = openai.createCompletion(openAiTitleRequest)
+
+  //   .then((response) => {
+  //     console.log("openAiTitleRequest====>>", openAiTitleRequest)
+  //     const parsedResponse = response.data.choices[0].text.split(/\r?\n/).join(" ")
+  //     titleOfStory = parsedResponse
+
+  //   })
+  //   .then(() => { return titleOfStory }) // add other story and image too?
+  //   .catch(err => {
+  //     console.log(" 👺👺👺 getStoryTitle =====>", err.message)
+  //     res.status(400).json({ error: err })
+  //   })
 
   const promise00 = Promise.resolve(3); // REMOVE
   const getImage = dalle2.getImage({ userPrompt: dallePrefix + userRequest, userId, localFileName: localFileName2 })
 
-  // const promise02 = getStoryText;
 
-
-  // and the errors?
-  // 
+  // #1 GET IMAGE and TEXT
   Promise.all([promise00, getImage, getStoryText])
     .then((allValues) => {
-      res.status(200).send([null, allValues[1].url, allValues[2]])
-    })
 
-    .then(Promise.all([promise00, promise00, promise00]))
+      const newStoryText = allValues[2]
+      const openAiTitleRequest = {
+        model: "text-davinci-003",
+        prompt: "Write an interesting title to the following children's story: " + newStoryText,
+        temperature: 1,
+        max_tokens: 500,
+        top_p: 1,
+        frequency_penalty: 0.5,
+        presence_penalty: 0
+      }
 
-    .then(() => {
-      const bucketPrefix = "images/USERSET_A_" + userId + "/"
-      const bucketSuffix = "_picturebook_DEC2022.png"
-      const options = { destination: bucketPrefix + storyIdTitle + bucketSuffix };
-      bucket.upload("img/" + localFileName2, options)
+      // Promise.all([getStoryTitle])
+      openai.createCompletion(openAiTitleRequest)
+        .then((response) => {
+          console.log("openAiTitleRequest====>>", openAiTitleRequest)
+          const parsedResponse = response.data.choices[0].text.split(/\r?\n/).join(" ")
+          const titleOfStory = parsedResponse
+          return { titleOfStory, allValues }
+        })
+        .then(({ allValues, titleOfStory }) => {
+          console.log("!!!!!!titleOfStory=======>>>>>>>", titleOfStory)
+          res.status(200).send([null, allValues[1].url, allValues[2]])
+          return allValues
+        })
 
-        .then(() => {
-          const bucketBackupPrefix = "images_backup/USERSET_A_" + userId + "/"
+        // saved IMAGE to bucket
+        .then((allValues) => {
+
+          console.log("🏖🏖🏖 allValues[0]====>", allValues)
+
+
+          const bucketPrefix = "images/USERSET_A_" + userId + "/"
           const bucketSuffix = "_picturebook_DEC2022.png"
-          const options = { destination: bucketBackupPrefix + storyIdTitle + bucketSuffix };
+          const options = { destination: bucketPrefix + storyIdTitle + bucketSuffix };
           bucket.upload("img/" + localFileName2, options)
 
-            .then(() => unlink("img/" + localFileName2))
+            .then(() => {
+              const bucketBackupPrefix = "images_backup/USERSET_A_" + userId + "/"
+              const bucketSuffix = "_picturebook_DEC2022.png"
+              const options = { destination: bucketBackupPrefix + storyIdTitle + bucketSuffix };
+              bucket.upload("img/" + localFileName2, options)
+
+                .then(() => unlink("img/" + localFileName2))
+            })
+        })
+
+        // .then(() => { return { titleOfStory } })
+        .catch(err => {
+          console.log(" 👺👺👺 getStoryTitle =====>", err.message)
+          res.status(400).json({ error: err })
         })
     })
+
+
 
     .catch(err => {
       console.log("🙊 Server Error. Check node version.", err.message)
